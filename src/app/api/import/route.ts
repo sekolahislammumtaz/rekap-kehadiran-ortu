@@ -5,9 +5,9 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   try {
-    const isAuth = await verifySession();
-    if (!isAuth) {
-      return NextResponse.json({ error: "Unauthorized. Silakan login admin." }, { status: 401 });
+    const session = await verifySession();
+    if (!session || session.role !== "ADMIN") {
+      return NextResponse.json({ error: "Akses ditolak. Fitur impor Excel khusus Admin." }, { status: 403 });
     }
 
     const formData = await req.formData();

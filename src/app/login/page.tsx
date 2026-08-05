@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, Eye, EyeOff, BookOpen, ShieldCheck, ArrowRight, AlertCircle } from "lucide-react";
+import { Lock, Eye, EyeOff, BookOpen, User, ArrowRight, AlertCircle, ShieldCheck } from "lucide-react";
 
 export default function LoginPage() {
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -20,13 +21,16 @@ export default function LoginPage() {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({
+          username: username.trim() || "admin",
+          password,
+        }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Login gagal. Cek kembali password Anda.");
+        throw new Error(data.error || "Login gagal. Cek kembali Username dan Password Anda.");
       }
 
       router.push("/dashboard");
@@ -54,15 +58,18 @@ export default function LoginPage() {
             Rekap Kehadiran Kajian
           </h1>
           <p className="text-xs text-emerald-400 font-semibold uppercase tracking-wider">
-            Portal Admin Rekap & Perhitungan Poin
+            Portal Rekap & Perhitungan Poin Kehadiran
           </p>
         </div>
 
         {/* Login Card */}
         <div className="glass-card p-8 rounded-3xl border border-slate-800 shadow-2xl bg-slate-900/90">
-          <div className="flex items-center space-x-2 text-slate-300 text-xs font-semibold uppercase tracking-wider mb-6 pb-3 border-b border-slate-800">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>Login Administrator</span>
+          <div className="flex items-center justify-between text-slate-300 text-xs font-semibold uppercase tracking-wider mb-6 pb-3 border-b border-slate-800">
+            <div className="flex items-center space-x-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span>Login Pengguna</span>
+            </div>
+            <span className="text-[10px] text-slate-400 lowercase">Admin / Viewer</span>
           </div>
 
           {errorMsg && (
@@ -72,10 +79,28 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-2">
-                Password Admin
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                Username
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <User className="w-4 h-4" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="admin atau username anda"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl glass-input text-sm text-white placeholder-slate-500 font-medium"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                Password
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -83,7 +108,7 @@ export default function LoginPage() {
                 </div>
                 <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Masukkan password admin"
+                  placeholder="Masukkan password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -103,14 +128,16 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/25 flex items-center justify-center space-x-2 transition-all duration-200 disabled:opacity-50"
-            >
-              <span>{loading ? "Memverifikasi..." : "Masuk Sistem"}</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/25 flex items-center justify-center space-x-2 transition-all duration-200 disabled:opacity-50"
+              >
+                <span>{loading ? "Memverifikasi..." : "Masuk Sistem"}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </form>
         </div>
 

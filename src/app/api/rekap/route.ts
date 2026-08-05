@@ -4,8 +4,8 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   try {
-    const isAuth = await verifySession();
-    if (!isAuth) {
+    const session = await verifySession();
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     const searchQuery = searchParams.get("search");
 
     // Fetch all students with attendances and kajian info
-    const students = await prisma.student.findMany({
+    let students = await prisma.student.findMany({
       include: {
         attendances: {
           include: {
@@ -31,7 +31,13 @@ export async function GET(req: NextRequest) {
       ],
     });
 
-    // Fetch distinct divisions
+    // If Viewer user, restrict strictly to their allowed divisions
+    if (session.role === "VIEWER") {
+      const allowedLower = session.allowedDivisions.map((d) => d.toLowerCase());
+      students = students.filter((s) => allowedLower.includes(s.division.toLowerCase()));
+    }
+
+    // Fetch distinct divisions available for this user
     const divisionsList = Array.from(new Set(students.map((s) => s.division))).sort();
 
     // Map student records to display format
@@ -84,7 +90,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Also get list of all Kajian sessions for admin management
+    // Also get list of all Kajian sessions
     const allKajian = await prisma.kajian.findMany({
       orderBy: { createdAt: "desc" },
       include: {
@@ -96,11 +102,12 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      userRole: session.role,
       divisions: divisionsList,
       data: rekapData,
       totalStudents: students.length,
       totalKajian: allKajian.length,
-      kajianList: allKajian,
+      kajianList: session.role === "ADMIN" ? allKajian : [],
     });
   } catch (error: any) {
     console.error("Fetch rekap error:", error);

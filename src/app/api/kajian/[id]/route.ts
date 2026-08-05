@@ -7,9 +7,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const isAuth = await verifySession();
-    if (!isAuth) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const session = await verifySession();
+    if (!session || session.role !== "ADMIN") {
+      return NextResponse.json({ error: "Akses ditolak. Hapus kajian khusus Admin." }, { status: 403 });
     }
 
     const { id } = params;

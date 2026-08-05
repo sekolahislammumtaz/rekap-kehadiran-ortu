@@ -5,8 +5,8 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   try {
-    const isAuth = await verifySession();
-    if (!isAuth) {
+    const session = await verifySession();
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -29,6 +29,12 @@ export async function GET(req: NextRequest) {
         { name: "asc" },
       ],
     });
+
+    // Enforce VIEWER permissions
+    if (session.role === "VIEWER") {
+      const allowedLower = session.allowedDivisions.map((d) => d.toLowerCase());
+      students = students.filter((s) => allowedLower.includes(s.division.toLowerCase()));
+    }
 
     if (divisionFilter !== "Semua Divisi") {
       students = students.filter(

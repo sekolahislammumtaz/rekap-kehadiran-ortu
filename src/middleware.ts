@@ -26,13 +26,13 @@ export async function middleware(req: NextRequest) {
   if (token) {
     try {
       const verified = await jwtVerify(token, SECRET_KEY);
-      isAuthenticated = verified.payload.role === "admin";
+      isAuthenticated = !!verified.payload.username;
     } catch {
       isAuthenticated = false;
     }
   }
 
-  // If visiting /dashboard or root or protected API without auth -> redirect to /login
+  // Redirect to /login if unauthenticated
   if (!isAuthenticated) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -40,7 +40,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  // If authenticated and visiting root, redirect to /dashboard
+  // Redirect root to /dashboard if authenticated
   if (pathname === "/") {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }

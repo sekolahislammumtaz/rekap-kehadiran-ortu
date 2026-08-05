@@ -2,9 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen, LogOut, ShieldCheck } from "lucide-react";
+import { BookOpen, LogOut, ShieldCheck, UserCheck, Users } from "lucide-react";
 
-export default function Navbar() {
+interface NavbarProps {
+  username?: string;
+  role?: string;
+  onOpenUserModal?: () => void;
+}
+
+export default function Navbar({ username = "Admin", role = "ADMIN", onOpenUserModal }: NavbarProps) {
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -18,6 +24,8 @@ export default function Navbar() {
       setLoggingOut(false);
     }
   };
+
+  const isAdmin = role === "ADMIN";
 
   return (
     <header className="sticky top-0 z-40 w-full glass-card border-b border-slate-700/50 bg-slate-900/80 backdrop-blur-md">
@@ -36,11 +44,33 @@ export default function Navbar() {
           </div>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <div className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-800/50 text-emerald-400 text-xs font-semibold">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>Admin Simumtaz</span>
+        <div className="flex items-center space-x-3">
+          {/* User Badge */}
+          <div className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700 text-xs font-semibold">
+            {isAdmin ? (
+              <>
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span className="text-emerald-300 font-bold">Admin: {username}</span>
+              </>
+            ) : (
+              <>
+                <UserCheck className="w-4 h-4 text-teal-400" />
+                <span className="text-teal-300 font-bold">Viewer: {username}</span>
+              </>
+            )}
           </div>
+
+          {/* Admin User Management Button */}
+          {isAdmin && onOpenUserModal && (
+            <button
+              onClick={onOpenUserModal}
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700/80 text-emerald-300 text-xs font-bold transition-all shadow-sm"
+              title="Kelola User & Hak Akses Sekolah"
+            >
+              <Users className="w-4 h-4" />
+              <span>Kelola User</span>
+            </button>
+          )}
 
           <button
             onClick={handleLogout}
