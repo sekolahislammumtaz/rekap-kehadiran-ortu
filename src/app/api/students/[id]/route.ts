@@ -42,3 +42,48 @@ export async function DELETE(
     );
   }
 }
+
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await verifySession();
+    if (!session || session.role !== "ADMIN") {
+      return NextResponse.json(
+        { error: "Akses ditolak. Mengedit data siswa hanya dapat dilakukan oleh Admin." },
+        { status: 403 }
+      );
+    }
+
+    const { id } = params;
+    const body = await req.json();
+    const { name, division } = body;
+
+    if (!name || !name.trim()) {
+      return NextResponse.json({ error: "Nama siswa tidak boleh kosong!" }, { status: 400 });
+    }
+
+    const trimmedName = name.trim();
+
+    const updatedStudent = await prisma.student.update({
+      where: { id },
+      data: {
+        name: trimmedName,
+        ...(division ? { division: division.trim() } : {}),
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: `Nama siswa berhasil diperbarui menjadi "${updatedStudent.name}".`,
+      student: updatedStudent,
+    });
+  } catch (error: any) {
+    console.error("Update student error:", error);
+    return NextResponse.json(
+      { error: error.message || "Gagal memperbarui data siswa" },
+      { status: 500 }
+    );
+  }
+}

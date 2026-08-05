@@ -5,12 +5,12 @@ import {
   Download,
   Search,
   Filter,
-  Info,
   Calendar,
   X,
   Trash2,
   ListOrdered,
   Award,
+  Pencil,
 } from "lucide-react";
 
 export interface StudentHistory {
@@ -66,6 +66,11 @@ export default function RecapTable({
   onStudentDeleted,
 }: RecapTableProps) {
   const [selectedStudent, setSelectedStudent] = useState<RekapItem | null>(null);
+  const [editingStudent, setEditingStudent] = useState<RekapItem | null>(null);
+  const [editNameInput, setEditNameInput] = useState("");
+  const [editDivisionInput, setEditDivisionInput] = useState("");
+  const [isUpdatingStudent, setIsUpdatingStudent] = useState(false);
+
   const [showKajianManager, setShowKajianManager] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deletingStudentId, setDeletingStudentId] = useState<string | null>(null);
@@ -94,6 +99,37 @@ export default function RecapTable({
       alert("Terjadi kesalahan saat menghapus data siswa");
     } finally {
       setDeletingStudentId(null);
+    }
+  };
+
+  const handleUpdateStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingStudent || !editNameInput.trim()) return;
+
+    setIsUpdatingStudent(true);
+    try {
+      const res = await fetch(`/api/students/${editingStudent.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editNameInput.trim(),
+          division: editDivisionInput.trim(),
+        }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.error || "Gagal memperbarui nama siswa");
+      }
+
+      setEditingStudent(null);
+      if (onStudentDeleted) onStudentDeleted();
+      else onKajianDeleted();
+    } catch (err: any) {
+      alert(err.message || "Terjadi kesalahan saat mengedit data siswa");
+    } finally {
+      setIsUpdatingStudent(false);
     }
   };
 
@@ -183,14 +219,16 @@ export default function RecapTable({
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowKajianManager(true)}
-            className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-2 transition shadow-sm"
-            title="Kelola & Hapus Sesi Kajian"
-          >
-            <Calendar className="w-4 h-4 text-emerald-400" />
-            <span>Kelola & Hapus Sesi ({kajianList.length})</span>
-          </button>
+          {userRole === "ADMIN" && (
+            <button
+              onClick={() => setShowKajianManager(true)}
+              className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-2 transition shadow-sm"
+              title="Kelola & Hapus Sesi Kajian"
+            >
+              <Calendar className="w-4 h-4 text-emerald-400" />
+              <span>Kelola & Hapus Sesi ({kajianList.length})</span>
+            </button>
+          )}
 
           <button
             onClick={handleExport}
@@ -282,15 +320,32 @@ export default function RecapTable({
                         >
                           Detail
                         </button>
+
                         {userRole === "ADMIN" && (
-                          <button
-                            onClick={() => handleDeleteStudent(item.id, item.namaSiswa)}
-                            disabled={deletingStudentId === item.id}
-                            className="p-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-400 border border-rose-800/50 transition disabled:opacity-50"
-                            title="Hapus Data Siswa Ini"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <>
+                            {/* Delete Student Button */}
+                            <button
+                              onClick={() => handleDeleteStudent(item.id, item.namaSiswa)}
+                              disabled={deletingStudentId === item.id}
+                              className="p-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-400 border border-rose-800/50 transition disabled:opacity-50"
+                              title="Hapus Data Siswa Ini"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+
+                            {/* Edit Student Button (Placed to the right of Delete button) */}
+                            <button
+                              onClick={() => {
+                                setEditingStudent(item);
+                                setEditNameInput(item.namaSiswa);
+                                setEditDivisionInput(item.divisi);
+                              }}
+                              className="p-1.5 rounded-lg bg-teal-950/60 hover:bg-teal-900 text-teal-300 border border-teal-800/50 transition"
+                              title="Edit Nama Siswa"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                          </>
                         )}
                       </div>
                     </td>
@@ -301,6 +356,71 @@ export default function RecapTable({
           </table>
         </div>
       </div>
+
+      {/* Edit Student Modal */}
+      {editingStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
+          <div className="glass-card w-full max-w-md rounded-2xl border border-slate-700 p-6 space-y-4 shadow-2xl bg-slate-900">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Pencil className="w-5 h-5 text-emerald-400" />
+                Edit Data Siswa
+              </h3>
+              <button
+                onClick={() => setEditingStudent(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateStudent} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Nama Siswa
+                </label>
+                <input
+                  type="text"
+                  value={editNameInput}
+                  onChange={(e) => setEditNameInput(e.target.value)}
+                  required
+                  className="w-full px-4 py-2.5 rounded-xl glass-input text-sm text-white font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Divisi Sekolah
+                </label>
+                <input
+                  type="text"
+                  value={editDivisionInput}
+                  onChange={(e) => setEditDivisionInput(e.target.value)}
+                  required
+                  className="w-full px-4 py-2.5 rounded-xl glass-input text-sm text-white font-semibold"
+                />
+              </div>
+
+              <div className="flex items-center justify-end space-x-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingStudent(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdatingStudent}
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs shadow-md transition disabled:opacity-50"
+                >
+                  {isUpdatingStudent ? "Menyimpan..." : "Simpan Perubahan"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Student Detail Modal */}
       {selectedStudent && (
