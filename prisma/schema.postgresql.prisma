@@ -1,13 +1,11 @@
-// Prisma Schema for Rekap Kehadiran Kajian Orang Tua
-// Using SQLite for local development out-of-the-box
-// For Aiven PostgreSQL deployment, use schema.postgresql.prisma or set provider to postgresql
+// Prisma Schema for Aiven PostgreSQL Deployment
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
