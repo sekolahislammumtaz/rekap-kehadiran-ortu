@@ -286,7 +286,7 @@ export default function RecapTable({
 
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 rounded-xl bg-slate-800/60 border border-slate-700/60">
-                <span className="text-xs font-medium text-slate-300">Total Akumulasi Poin</span>
+                <span className="text-xs font-medium text-slate-300">Poin Kehadiran</span>
                 <span className="text-sm font-extrabold text-emerald-400">
                   {selectedStudent.poinKehadiran > 0 ? `+${selectedStudent.poinKehadiran}` : selectedStudent.poinKehadiran} Poin
                 </span>

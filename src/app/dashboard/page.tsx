@@ -91,7 +91,6 @@ export default function DashboardPage() {
           totalStudents={totalStudentsCount}
           totalKajian={totalKajianCount}
           divisionsCount={divisions.length}
-          totalPointsSum={totalPointsSum}
         />
 
         {/* Excel Import Form (Admin Only) */}
