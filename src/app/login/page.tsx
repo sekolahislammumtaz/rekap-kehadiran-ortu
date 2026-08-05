@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, Eye, EyeOff, BookOpen, User, ArrowRight, AlertCircle, ShieldCheck } from "lucide-react";
+import { Lock, Eye, EyeOff, User, ArrowRight, AlertCircle, ShieldCheck } from "lucide-react";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -49,16 +49,20 @@ export default function LoginPage() {
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md space-y-6 relative z-10">
-        {/* Header Branding */}
+        {/* Header Branding with Yayasan Munazarah Logo */}
         <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 shadow-xl shadow-emerald-500/20 mb-2">
-            <BookOpen className="w-8 h-8 text-slate-950 stroke-[2.5]" />
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-slate-900 border border-slate-700/80 p-2 shadow-2xl shadow-emerald-500/20 mb-1">
+            <img
+              src="/yayasan.png"
+              alt="Logo Yayasan Munazarah"
+              className="w-full h-full object-contain"
+            />
           </div>
           <h1 className="text-2xl font-extrabold text-white tracking-tight">
-            Rekap Kehadiran Kajian
+            Yayasan Munazarah
           </h1>
           <p className="text-xs text-emerald-400 font-semibold uppercase tracking-wider">
-            Portal Rekap & Perhitungan Poin Kehadiran
+            Rekap & Perhitungan Poin Kehadiran Kajian
           </p>
         </div>
 
@@ -143,7 +147,7 @@ export default function LoginPage() {
 
         {/* Footer Note */}
         <p className="text-center text-xs text-slate-500">
-          Aplikasi Rekap Kehadiran Kajian Orang Tua Siswa &copy; 2026
+          Yayasan Munazarah &copy; 2026 Rekap Kehadiran Kajian Orang Tua Siswa
         </p>
       </div>
     </div>

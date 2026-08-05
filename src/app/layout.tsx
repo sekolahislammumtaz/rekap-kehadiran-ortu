@@ -2,8 +2,13 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Rekap Kehadiran Kajian Orang Tua",
-  description: "Aplikasi Rekap Kehadiran & Perhitungan Poin Kajian Orang Tua Siswa",
+  title: "Yayasan Munazarah - Rekap Kehadiran Kajian Orang Tua",
+  description: "Aplikasi Rekap Kehadiran & Perhitungan Poin Kajian Orang Tua Siswa - Yayasan Munazarah",
+  icons: {
+    icon: "/yayasan.png",
+    shortcut: "/yayasan.png",
+    apple: "/yayasan.png",
+  },
 };
 
 export default function RootLayout({
