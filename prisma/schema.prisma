@@ -1,0 +1,44 @@
+// Prisma Schema for Rekap Kehadiran Kajian Orang Tua
+// Configured for Aiven PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Kajian {
+  id          String             @id @default(uuid())
+  title       String
+  date        String             // Stored as ISO string YYYY-MM-DD or formatted date
+  createdAt   DateTime           @default(now())
+  attendances AttendanceRecord[]
+}
+
+model Student {
+  id          String             @id @default(uuid())
+  name        String
+  division    String
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  attendances AttendanceRecord[]
+
+  @@unique([name, division])
+}
+
+model AttendanceRecord {
+  id          String   @id @default(uuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  kajianId    String
+  kajian      Kajian   @relation(fields: [kajianId], references: [id], onDelete: Cascade)
+  ayahStatus  String?  // "Hadir", "Belum Hadir", or null if not in list
+  bundaStatus String?  // "Hadir", "Belum Hadir", or null if not in list
+  points      Int      // +1 or -1
+  createdAt   DateTime @default(now())
+
+  @@unique([studentId, kajianId])
+}
