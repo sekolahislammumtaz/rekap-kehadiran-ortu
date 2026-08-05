@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, Eye, EyeOff, User, ArrowRight, AlertCircle, ShieldCheck } from "lucide-react";
 
+import Logo from "@/components/Logo";
+
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -52,11 +54,7 @@ export default function LoginPage() {
         {/* Header Branding with Yayasan Munazarah Logo */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-slate-900 border border-slate-700/80 p-2 shadow-2xl shadow-emerald-500/20 mb-1">
-            <img
-              src="/yayasan.png"
-              alt="Logo Yayasan Munazarah"
-              className="w-full h-full object-contain"
-            />
+            <Logo alt="Logo Yayasan Munazarah" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-2xl font-extrabold text-white tracking-tight">
             Yayasan Munazarah

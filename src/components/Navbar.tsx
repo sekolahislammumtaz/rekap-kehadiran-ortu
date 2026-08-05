@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut, ShieldCheck, UserCheck, Users } from "lucide-react";
 
+import Logo from "@/components/Logo";
+
 interface NavbarProps {
   username?: string;
   role?: string;
@@ -32,12 +34,7 @@ export default function Navbar({ username = "Admin", role = "ADMIN", onOpenUserM
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="w-11 h-11 rounded-xl bg-slate-900 border border-slate-700 p-1 flex items-center justify-center shadow-lg shadow-emerald-500/10 shrink-0">
-            {/* Yayasan Munazarah Logo */}
-            <img
-              src="/yayasan.png"
-              alt="Logo Yayasan Munazarah"
-              className="w-full h-full object-contain"
-            />
+            <Logo alt="Logo Yayasan Munazarah" className="w-full h-full object-contain" />
           </div>
           <div>
             <h1 className="text-base sm:text-lg font-extrabold text-white leading-tight">
