@@ -90,6 +90,27 @@ export default function RecapTable({
     }
   };
 
+  const handleDeleteAllKajian = async () => {
+    if (!confirm("PERINGATAN! Anda yakin ingin MENGHAPUS SELURUH data sesi kajian dan reset total poin semua siswa?")) {
+      return;
+    }
+
+    setDeletingId("all");
+    try {
+      const res = await fetch("/api/kajian/all", { method: "DELETE" });
+      if (res.ok) {
+        onKajianDeleted();
+        setShowKajianManager(false);
+      } else {
+        alert("Gagal menghapus seluruh sesi kajian");
+      }
+    } catch {
+      alert("Terjadi kesalahan saat menghapus data");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Controls & Export Header */}
@@ -137,11 +158,11 @@ export default function RecapTable({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowKajianManager(true)}
-            className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-2 transition"
-            title="Kelola Sesi Kajian"
+            className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-2 transition shadow-sm"
+            title="Kelola & Hapus Sesi Kajian"
           >
             <Calendar className="w-4 h-4 text-emerald-400" />
-            <span>Kelola Sesi ({kajianList.length})</span>
+            <span>Kelola & Hapus Sesi ({kajianList.length})</span>
           </button>
 
           <button
@@ -315,11 +336,11 @@ export default function RecapTable({
       {/* Kajian Manager Modal */}
       {showKajianManager && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
-          <div className="glass-card w-full max-w-md rounded-2xl border border-slate-700 p-6 space-y-4 shadow-2xl bg-slate-900">
+          <div className="glass-card w-full max-w-lg rounded-2xl border border-slate-700 p-6 space-y-4 shadow-2xl bg-slate-900">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-emerald-400" />
-                Daftar Sesi Kajian Terimpor
+                Kelola & Hapus Sesi Kajian
               </h3>
               <button
                 onClick={() => setShowKajianManager(false)}
@@ -329,40 +350,68 @@ export default function RecapTable({
               </button>
             </div>
 
-            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+            <p className="text-xs text-slate-400">
+              Menghapus sesi kajian akan secara otomatis menghapus seluruh poin kehadiran yang terkait dengan sesi tersebut.
+            </p>
+
+            <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
               {kajianList.length === 0 ? (
-                <p className="text-xs text-slate-500 text-center py-4">Belum ada sesi kajian terimpor.</p>
+                <p className="text-xs text-slate-500 text-center py-6">Belum ada sesi kajian yang terimpor.</p>
               ) : (
                 kajianList.map((k) => (
                   <div
                     key={k.id}
-                    className="p-3 rounded-xl bg-slate-800/50 border border-slate-700/60 flex items-center justify-between text-xs"
+                    className="p-3.5 rounded-xl bg-slate-800/60 border border-slate-700/60 flex items-center justify-between gap-3 text-xs"
                   >
                     <div>
-                      <div className="font-bold text-white">{k.title}</div>
-                      <div className="text-slate-400 mt-0.5">Tanggal: {k.date} ({k._count.attendances} siswa)</div>
+                      <div className="font-bold text-white text-sm">{k.title}</div>
+                      <div className="text-slate-400 mt-0.5">
+                        Tanggal: <span className="text-slate-300 font-medium">{k.date}</span> &bull; Total Tercatat: <span className="text-emerald-400 font-bold">{k._count.attendances} Siswa</span>
+                      </div>
                     </div>
                     <button
                       onClick={() => handleDeleteKajian(k.id, k.title)}
                       disabled={deletingId === k.id}
-                      className="p-2 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-400 border border-rose-800/50 transition disabled:opacity-50"
+                      className="px-3 py-1.5 rounded-lg bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/60 font-semibold flex items-center gap-1.5 transition disabled:opacity-50 shrink-0"
                       title="Hapus Sesi Kajian Ini"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>{deletingId === k.id ? "Hapus..." : "Hapus Sesi"}</span>
                     </button>
                   </div>
                 ))
               )}
             </div>
 
-            <div className="pt-2">
-              <button
-                onClick={() => setShowKajianManager(false)}
-                className="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition"
-              >
-                Tutup
-              </button>
-            </div>
+            {kajianList.length > 0 && (
+              <div className="pt-2 border-t border-slate-800/80 flex flex-col sm:flex-row gap-2">
+                <button
+                  onClick={handleDeleteAllKajian}
+                  disabled={deletingId === "all"}
+                  className="w-full sm:w-auto px-4 py-2 rounded-xl bg-rose-950 hover:bg-rose-900 text-rose-300 border border-rose-800 text-xs font-bold flex items-center justify-center gap-2 transition disabled:opacity-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Hapus SELURUH Sesi & Reset Data</span>
+                </button>
+                <button
+                  onClick={() => setShowKajianManager(false)}
+                  className="w-full sm:flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition"
+                >
+                  Tutup
+                </button>
+              </div>
+            )}
+
+            {kajianList.length === 0 && (
+              <div className="pt-2">
+                <button
+                  onClick={() => setShowKajianManager(false)}
+                  className="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition"
+                >
+                  Tutup
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
