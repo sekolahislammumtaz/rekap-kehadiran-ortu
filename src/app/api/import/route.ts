@@ -45,13 +45,22 @@ export async function POST(req: NextRequest) {
 
     // 2. Upsert Students and Attendance Records
     for (const item of parseResult.results) {
-      // Find or create student
       let student = await prisma.student.findFirst({
         where: {
-          name: { equals: item.studentName, mode: "insensitive" },
-          division: { equals: item.division, mode: "insensitive" },
+          name: item.studentName,
+          division: item.division,
         },
       });
+
+      if (!student) {
+        const allStudents = await prisma.student.findMany();
+        student =
+          allStudents.find(
+            (s) =>
+              s.name.toLowerCase() === item.studentName.toLowerCase() &&
+              s.division.toLowerCase() === item.division.toLowerCase()
+          ) || null;
+      }
 
       if (!student) {
         student = await prisma.student.create({
