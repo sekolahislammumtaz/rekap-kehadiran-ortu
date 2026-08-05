@@ -49,6 +49,8 @@ interface RecapTableProps {
   onSearchChange: (query: string) => void;
   kajianList: KajianSession[];
   onKajianDeleted: () => void;
+  userRole?: string;
+  onStudentDeleted?: () => void;
 }
 
 export default function RecapTable({
@@ -60,14 +62,39 @@ export default function RecapTable({
   onSearchChange,
   kajianList,
   onKajianDeleted,
+  userRole = "ADMIN",
+  onStudentDeleted,
 }: RecapTableProps) {
   const [selectedStudent, setSelectedStudent] = useState<RekapItem | null>(null);
   const [showKajianManager, setShowKajianManager] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingStudentId, setDeletingStudentId] = useState<string | null>(null);
 
   const handleExport = () => {
     const url = `/api/export?division=${encodeURIComponent(selectedDivision)}`;
     window.location.href = url;
+  };
+
+  const handleDeleteStudent = async (id: string, name: string) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus data siswa "${name}"? Seluruh riwayat poin dan kehadirannya akan dihapus.`)) {
+      return;
+    }
+
+    setDeletingStudentId(id);
+    try {
+      const res = await fetch(`/api/students/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        if (onStudentDeleted) onStudentDeleted();
+        else onKajianDeleted();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Gagal menghapus data siswa");
+      }
+    } catch {
+      alert("Terjadi kesalahan saat menghapus data siswa");
+    } finally {
+      setDeletingStudentId(null);
+    }
   };
 
   const handleDeleteKajian = async (id: string, title: string) => {
@@ -248,12 +275,24 @@ export default function RecapTable({
                     </td>
 
                     <td className="py-4 px-4 text-center">
-                      <button
-                        onClick={() => setSelectedStudent(item)}
-                        className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition"
-                      >
-                        Detail
-                      </button>
+                      <div className="flex items-center justify-center space-x-1.5">
+                        <button
+                          onClick={() => setSelectedStudent(item)}
+                          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition"
+                        >
+                          Detail
+                        </button>
+                        {userRole === "ADMIN" && (
+                          <button
+                            onClick={() => handleDeleteStudent(item.id, item.namaSiswa)}
+                            disabled={deletingStudentId === item.id}
+                            className="p-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-400 border border-rose-800/50 transition disabled:opacity-50"
+                            title="Hapus Data Siswa Ini"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))

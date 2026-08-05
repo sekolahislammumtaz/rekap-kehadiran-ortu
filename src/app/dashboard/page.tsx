@@ -114,6 +114,8 @@ export default function DashboardPage() {
           onSearchChange={(q) => setSearchQuery(q)}
           kajianList={kajianList}
           onKajianDeleted={fetchRekap}
+          userRole={currentUser.role}
+          onStudentDeleted={fetchRekap}
         />
       </main>
 
