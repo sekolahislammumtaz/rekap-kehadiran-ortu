@@ -43,24 +43,16 @@ export async function POST(req: NextRequest) {
     let newStudentsCount = 0;
     let recordsCreated = 0;
 
-    // 2. Upsert Students and Attendance Records
-    for (const item of parseResult.results) {
-      let student = await prisma.student.findFirst({
-        where: {
-          name: item.studentName,
-          division: item.division,
-        },
-      });
+    // Fetch existing students in 1 batch query for maximum performance
+    const existingStudents = await prisma.student.findMany();
+    const studentMap = new Map(
+      existingStudents.map((s) => [`${s.name.toLowerCase()}_${s.division.toLowerCase()}`, s])
+    );
 
-      if (!student) {
-        const allStudents = await prisma.student.findMany();
-        student =
-          allStudents.find(
-            (s) =>
-              s.name.toLowerCase() === item.studentName.toLowerCase() &&
-              s.division.toLowerCase() === item.division.toLowerCase()
-          ) || null;
-      }
+    // 2. Process Students and Attendance Records
+    for (const item of parseResult.results) {
+      const key = `${item.studentName.toLowerCase()}_${item.division.toLowerCase()}`;
+      let student = studentMap.get(key);
 
       if (!student) {
         student = await prisma.student.create({
@@ -69,10 +61,11 @@ export async function POST(req: NextRequest) {
             division: item.division,
           },
         });
+        studentMap.set(key, student);
         newStudentsCount++;
       }
 
-      // Upsert Attendance Record for this Kajian
+      // Create or update attendance record
       await prisma.attendanceRecord.upsert({
         where: {
           studentId_kajianId: {
